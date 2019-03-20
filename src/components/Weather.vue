@@ -1,139 +1,332 @@
 <template>
+    
+    <div class="container">
+
+        <b-modal ref="modalGetCity" hide-footer title="Using Component Methods" >
+
+            <div class="container">
+
+                <div style="margin-bottom: 20px;" class="row">
+                    <div class="col-lg-12">
+                        <multi-select label="country" @input="getCities" placeholder="Введите страну" selectLabel="кликните для выбора" selectedLabel="Выбрано" deselectLabel="кликните для удаления"  v-model.trim="сountry" :options="optionsCountry" >
+                            <span slot="noResult">Страна не найден</span>
+                        </multi-select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                    <multi-select label="city" placeholder="Введите город" selectLabel="кликните для выбора" selectedLabel="Выбрано" deselectLabel="кликните для удаления"  v-model="citySelect" :options="optionsCity" >
+                        <span slot="noResult">город не найден</span>
+                    </multi-select>
+                    </div>
+                </div>
+
+                <b-button class="mt-3" variant="outline-success" block @click="changeCity">Cменить город</b-button>
+            </div>
+        </b-modal>
 
 
-  <div class="grid">
-    <div>
-      <h1>Омск</h1>
-      <div style="display: inline;" >Сменить город</div>
-      <div  @click="getLocation" style="display: inline;" >Мое местоположение</div>
-    </div>
+        <div class="row header">
 
-    <div>
-      <div class="pog">
-        <div >
-          <img  width="100"  height="100" :src="weather_icon" />
-          <span style="position:relative;font-size: 100px; bottom: 50px;color:honeydew;" >{{ temp_cel }}</span>
+            <div class="col-lg-6">
+                <div class="top-menu" >
+                    <h1>
+                        <span  v-if="load" >{{ cityRu }}</span>
+                        <span v-if="!load" >
+                            <b-spinner variant="warning" type="grow" label="Spinning" />
+                            <b-spinner variant="primary" type="grow" label="Spinning" />
+                            <b-spinner variant="success" type="grow" label="Spinning" />
+                            <b-spinner variant="danger" type="grow" label="Spinning" />
+                            <b-spinner variant="success" label="Spinning" />
+                        </span>
+                    </h1>
+                    <b-nav>
+                        <b-nav-item class="top-link" @click="showModal" >Сменить город</b-nav-item>
+                        <b-nav-item class="top-link" @click="getLocation" >Мое местоположение</b-nav-item>
+                    </b-nav>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <b-button-group class="float-lg-right" >
+                    <b-button variant="success" @click="setCelsius" >°C</b-button>
+                    <b-button variant="warning" @click="setFahrenheit" >°F</b-button>
+                </b-button-group>
+            </div>
+
+
         </div>
-        <div class="description-weather">{{ data_weather.weather[0].description }}</div>
-      </div>
-    </div>
-    <div>Item 3</div>
-    <div>Item 4</div>
-    <div>Item 5</div>
-    <div>Item 6</div>
-  </div>
 
+        <div class="row main">
+            <div class="col-lg-12">
+                <div class="pog">
+                    <div >
+                        <img  width="100"  height="200" :src="weather.icon" />
+                        <span class="degree" >{{ degree }}°</span>
+                    </div>
+                    <div class="description-weather">{{ weather.description }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row footer">
+
+            <div class="col-lg-3">
+                <h6 class="title-params"> ветер</h6>
+                <h5>{{ weather.wind_speed }} <span class="des-params">м/с {{ getWindDirections }}</span></h5>
+            </div>
+
+            <div class="col-lg-3">
+                <h6 class="title-params">Давление</h6>
+                <h5>{{weather.pressure }} <span class="des-params">мм рт.ст.</span></h5>
+            </div>
+
+            <div class="col-lg-3">
+                <h6 class="title-params">Влажность</h6>
+                <h5>{{ weather.humidity }}<span class="des-params"> %</span></h5>
+            </div>
+
+            <div class="col-lg-3">
+                <h6 class="title-params">Верояиность дождя </h6>
+                <h5>10 % </h5>
+            </div>
+          </div>
+
+    </div>
 
 </template>
 
 <script>
 
-import axios from 'axios'
+    import axios from 'axios'
+    import Multiselect from 'vue-multiselect'
 
-export default {
+    export default {
 
-  name: 'weather',
+        name: 'weather2',
+        components:{
+           "multi-select":Multiselect
+        },
+        data(){
+            return {
 
-  data(){
-     return{
-       data_weather:{},
-       weather_icon:'',
-       temp_cel:0,
-       lat:0,
-       lon:0
+                сountry:'',
+                optionsCountry:[],
+                citySelect:{city_ru:false,city_en:false},
+                optionsCity:[],
+                weather: {
+                    temp:0,
+                    description:'',
+                    icon:'',
+                    wind_speed:0,
+                    wind_deg:0,
+                    pressure:0,
+                    humidity:0,
+               },
+               degree:0,
+               cityEn:'',
+               cityRu:'',
+               load:true
+            }
+        },
 
-     }
-  },
+        computed:{
 
-  created(){
+            getWindDirections(){
 
-      let api_key = "cc7e0e2e24d0a79b409823b4ecf906e7";
-      let lang = "ru";
-      let url = "https://api.openweathermap.org/data/2.5/weather?q=moscow&lang="+lang+"&appid="+api_key;
+                let directions = [
+                    {min: 337.5, max: 22.5, name: 'Северный'},
+                    {min: 22.51, max: 67.5, name: 'Северо-восточный'},
+                    {min: 67.51, max: 112.5, name: 'Восточный'},
+                    {min: 112.51, max: 157.5, name: 'Юго-восточный'},
+                    {min: 157.51, max: 202.5, name: 'Южный'},
+                    {min: 202.51, max: 247.5, name: 'Юго-западный'},
+                    {min: 247.51, max: 292.5, name: 'Западный'},
+                    {min: 292.51, max: 337.49, name: 'Северо-западный'},
+                ];
 
-      axios.get(url).then((response)=>{
-        this.data_weather = response.data;
-        this.weather = response.data.weather[0];
-        this.weather_icon = "http://openweathermap.org/img/w/"+this.weather.icon+".png";
+                for(let i=0;i< directions.length;i++){
+                    if(directions[i].min <= this.weather.wind_deg &&  directions[i].max >= this.weather.wind_deg){
+                        return directions[i].name;
+                    }
+                }
+            }
 
-        this.temp_cel = Math.round(parseFloat(this.data_weather.main.temp)-273.15);
-        console.log(this.data_weather);
+        },
+        created(){
 
-      }).catch((error)=>{
-        console.log(error);
-      });
+            this.load = false;
+            axios.get('http://localhost:3000/weather/').then((response)=>{
+                this.weather = response.data;
+                this.degree = Math.round(this.weather.temp-273.15);
+                this.cityEn = this.weather.cityEn;
+                this.cityRu = this.weather.cityRu;
+                this.load = true;
+            }).catch((error)=>{ console.log(error); });
 
-      // Math.round(x)
+            axios.get('http://localhost:3000/country/').then((response)=>{
+                this.optionsCountry = response.data;
+            }).catch((error)=>{ console.log(error); });
 
-  },
 
-  methods:{
+        },
 
-      getLocation() {
+        methods:{
 
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position)=>{
+            showModal() {
+                this.$refs.modalGetCity.show();
+            },
 
-              this.lat = position.coords.latitude;
-              this.lon = position.coords.longitude;
+            changeCity() {
 
-              console.log(this.lat,this.lon);
+                if(this.citySelect.city_en){
 
-          });
-        } else { console.log("Geolocation is not supported by this browser."); }
+                    this.load = false;
+                    axios.get('http://localhost:3000/weather/',{params:{city:this.citySelect.city_en}}).then((response)=>{
+                        this.weather = response.data;
+                        this.degree = Math.round(this.weather.temp-273.15);
+                        this.cityEn = this.weather.cityEn;
+                        this.cityRu = this.weather.cityRu;
+                        this.load = true;
+                    }).catch((error)=>{ console.log(error); });
+                }
 
-      }
+                this.$refs.modalGetCity.hide();
+
+            },
+            setCelsius(){
+
+                this.degree = Math.round(this.weather.temp-273.15);
+
+            },
+            setFahrenheit(){
+
+                this.degree = Math.round((this.weather.temp-273.15)*9/5+32);
+
+            },
+            getCities(oblect){
+
+                axios.get('http://localhost:3000/city/',{params:{country:oblect.country}}).then((response)=>{
+                    this.optionsCity = response.data;
+                    this.citySelect = this.optionsCity[0];
+                }).catch((error)=>{ console.log(error); });
+
+            },
+            getLocation() {
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((position)=>{
+
+                        this.lat = position.coords.latitude;
+                        this.lon = position.coords.longitude;
+                        this.load = false;
+                        axios.get('http://localhost:3000/weather/',{params:{lat:this.lat,lon:this.lon}}).then((response)=>{
+                            this.weather = response.data;
+                            this.degree = Math.round(this.weather.temp-273.15);
+                            this.cityEn = this.weather.cityEn;
+                            this.cityRu = this.weather.cityRu;
+                            this.load = true;
+                        }).catch((error)=>{ console.log(error); });
+
+                    });
+                } else { console.log("Geolocation is not supported by this browser."); }
+
+            }
+
+        }
+
+
+    }
+</script>
+
+<style>
+
+    body {
+        background-color: #0089ff;
+    }
+
+    .top-link a{
+
+        color:#77bfff !important;
+    }
+
+    .header{
+
+        height: 100px;
+        margin-top: 60px;
+    }
+
+    .main{
+        height: 400px;
+        border: red solid 1px;
 
     }
 
+    .footer{
 
-}
-</script>
+        height: 100px;
+    }
 
-<style scoped>
+    .top-menu h1 {
+        position: relative;
+        left:10px;
+        color: honeydew;
+    }
 
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    /*grid-column-gap: 20px;*/
-    /*grid-row-gap: 5px;*/
-    grid-template-rows: 150px 400px 150px;
-  }
+    .pog {
+        width: 400px;
+        height: 100px;
+        margin-right: 60%;
+        margin-left: 35%;
+    }
 
-  .grid div {
-    background-color: #0089ff;
-    padding: 10px;
-  }
+    .degree {
+        position:relative;
+        font-size: 100px;
+        bottom:-10px;
+        color:honeydew;
+    }
 
-  .grid div:nth-child(1){
-      grid-area: auto;
-      grid-column-start: 1;
-      grid-column-end: 5;
-   }
+    .description-weather{
+        position: relative;
+        top:-20px;
+        left:15px;
+        font-weight: bolder;
+        color: aliceblue;
+        font-family:Verdana,Tahoma;
+        font-size: large;
+    }
+    .description-weather:first-letter{
+        text-transform: capitalize;
+    }
 
-  .grid div:nth-child(2){
-    grid-column-start: 1;
-    grid-column-end: 5;
-  }
+    .title-params {
 
-  .pog {
-    width: 400px;
-    height: 100px;
-    margin-right: 60%;
-    margin-left: 35%;
-  }
+        color:#77bfff;
+    }
 
-  .description-weather{
-    position: relative;
-    top:-50px;
-    left:15px;
-    font-weight: bolder;
-    color: aliceblue;
-    font-family:Verdana,Tahoma;
-    font-size: large;
-  }
-  .description-weather:first-letter{
-    text-transform: capitalize;
-  }
+    .des-params {
+
+        color:#a3d4ff;
+    }
+
+    h5{ color:#fff; }
+
 
 </style>
+
+
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+
+<style>
+
+    .multiselect__option--highlight {
+        background: #0089ff;
+        outline: none;
+        color: #fff;
+    }
+
+
+</style>
+

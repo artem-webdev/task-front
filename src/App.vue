@@ -1,18 +1,18 @@
 <template>
   <div id="app">
 
-    <weather2/>
+    <weather/>
 
   </div>
 </template>
 
 <script>
-import weather2 from './components/Weather2.vue'
+import weather from './components/Weather.vue'
 
 export default {
   name: 'app',
   components: {
-    weather2
+    weather
   }
 }
 </script>
