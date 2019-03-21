@@ -136,7 +136,8 @@
                cityEn:'',
                cityRu:'',
                load:true,
-               error_message:''
+               error_message:'',
+               host:'http://localhost:3000'
             }
         },
 
@@ -167,7 +168,7 @@
         created(){
 
             this.load = false;
-            axios.get('http://localhost:3000/weather/').then((response)=>{
+            axios.get(this.host+'/weather/').then((response)=>{
                 this.weather = response.data;
                 this.degree = Math.round(this.weather.temp-273.15);
                 this.cityEn = this.weather.cityEn;
@@ -175,7 +176,7 @@
                 this.load = true;
             }).catch((error)=>{ this.showError(error); });
 
-            axios.get('http://localhost:3000/country/').then((response)=>{
+            axios.get(this.host+'/country/').then((response)=>{
                 this.optionsCountry = response.data;
             }).catch((error)=>{ this.showError(error);  });
 
@@ -193,7 +194,7 @@
                 if(this.citySelect.city_en){
 
                     this.load = false;
-                    axios.get('http://localhost:3000/weather/',{params:{city:this.citySelect.city_en}}).then((response)=>{
+                    axios.get(this.host+'/weather/',{params:{city:this.citySelect.city_en}}).then((response)=>{
                         this.weather = response.data;
                         this.degree = Math.round(this.weather.temp-273.15);
                         this.cityEn = this.weather.cityEn;
@@ -218,7 +219,7 @@
             },
             getCities(oblect){
 
-                axios.get('http://localhost:3000/city/',{params:{country:oblect.country}}).then((response)=>{
+                axios.get(this.host+'/city/',{params:{country:oblect.country}}).then((response)=>{
                     this.optionsCity = response.data;
                     this.citySelect = this.optionsCity[0];
                 }).catch((error)=>{ this.showError(error); });
@@ -231,7 +232,7 @@
                     navigator.geolocation.getCurrentPosition((position)=>{
                         this.lat = position.coords.latitude;
                         this.lon = position.coords.longitude;
-                        axios.get('http://localhost:3000/weather/',{params:{lat:this.lat,lon:this.lon}}).then((response)=>{
+                        axios.get(this.host+'/weather/',{params:{lat:this.lat,lon:this.lon}}).then((response)=>{
                             this.weather = response.data;
                             this.degree = Math.round(this.weather.temp-273.15);
                             this.cityEn = this.weather.cityEn;
