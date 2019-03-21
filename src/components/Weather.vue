@@ -2,7 +2,12 @@
     
     <div class="container">
 
-        <b-modal ref="modalGetCity" hide-footer title="Using Component Methods" >
+        <b-modal  title="Ошибка" ref="error_modal">
+            <h2 class="alert-danger" >{{ error_message }}</h2>
+            <span slot="modal-cancel" >закрыть</span>
+        </b-modal>
+
+        <b-modal ref="modalGetCity" hide-footer title="Сменить город" >
 
             <div class="container">
 
@@ -18,6 +23,7 @@
                     <div class="col-lg-12">
                     <multi-select label="city" placeholder="Введите город" selectLabel="кликните для выбора" selectedLabel="Выбрано" deselectLabel="кликните для удаления"  v-model="citySelect" :options="optionsCity" >
                         <span slot="noResult">город не найден</span>
+                        <span slot="noOptions" >город не выбран</span>
                     </multi-select>
                     </div>
                 </div>
@@ -29,7 +35,7 @@
 
         <div class="row header">
 
-            <div class="col-lg-6">
+            <div class="col-6 col-sx-6 col-md-6 col-lg-6">
                 <div class="top-menu" >
                     <h1>
                         <span  v-if="load" >{{ cityRu }}</span>
@@ -41,16 +47,17 @@
                             <b-spinner variant="success" label="Spinning" />
                         </span>
                     </h1>
-                    <b-nav>
+                    <b-nav style="min-width:400px;">
                         <b-nav-item class="top-link" @click="showModal" >Сменить город</b-nav-item>
                         <b-nav-item class="top-link" @click="getLocation" >Мое местоположение</b-nav-item>
                     </b-nav>
+
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <b-button-group class="float-lg-right" >
-                    <b-button variant="success" @click="setCelsius" >°C</b-button>
+            <div class="col-6 col-xs-6 col-md-6 col-lg-6">
+                <b-button-group style="margin-left:50%;"  >
+                    <b-button variant="info" @click="setCelsius" >°C</b-button>
                     <b-button variant="warning" @click="setFahrenheit" >°F</b-button>
                 </b-button-group>
             </div>
@@ -62,7 +69,7 @@
             <div class="col-lg-12">
                 <div class="pog">
                     <div >
-                        <img  width="100"  height="200" :src="weather.icon" />
+                        <img  width="100"  height="100" :src="weather.icon" />
                         <span class="degree" >{{ degree }}°</span>
                     </div>
                     <div class="description-weather">{{ weather.description }}</div>
@@ -70,26 +77,26 @@
             </div>
         </div>
 
-        <div class="row footer">
+        <div class="row">
 
-            <div class="col-lg-3">
-                <h6 class="title-params"> ветер</h6>
-                <h5>{{ weather.wind_speed }} <span class="des-params">м/с {{ getWindDirections }}</span></h5>
-            </div>
+                <div class="col-6 col-sm-6 col-md-6  col-lg-3">
+                    <h6 class="title-params"> ветер</h6>
+                    <h5>{{ weather.wind_speed }} <span class="des-params">м/с {{ getWindDirections }}</span></h5>
+                </div>
 
-            <div class="col-lg-3">
-                <h6 class="title-params">Давление</h6>
-                <h5>{{weather.pressure }} <span class="des-params">мм рт.ст.</span></h5>
-            </div>
+                <div class="col-6 col-sm-6 col-md-6 col-lg-3">
+                    <h6 class="title-params">Давление</h6>
+                    <h5>{{weather.pressure }} <span class="des-params">мм рт.ст.</span></h5>
+                </div>
 
-            <div class="col-lg-3">
+            <div class="col-6 col-sm-6 col-md-6 col-lg-3">
                 <h6 class="title-params">Влажность</h6>
                 <h5>{{ weather.humidity }}<span class="des-params"> %</span></h5>
             </div>
 
-            <div class="col-lg-3">
-                <h6 class="title-params">Верояиность дождя </h6>
-                <h5>10 % </h5>
+            <div class="col-6 col-sm-6 col-md-6 col-lg-3">
+                <h6 class="title-params">Облачность </h6>
+                <h5>{{weather.clouds}} % </h5>
             </div>
           </div>
 
@@ -123,11 +130,13 @@
                     wind_deg:0,
                     pressure:0,
                     humidity:0,
+                    clouds:0
                },
                degree:0,
                cityEn:'',
                cityRu:'',
-               load:true
+               load:true,
+               error_message:''
             }
         },
 
@@ -136,7 +145,8 @@
             getWindDirections(){
 
                 let directions = [
-                    {min: 337.5, max: 22.5, name: 'Северный'},
+                    {min: 337.5, max: 360, name: 'Северный'},
+                    {min: 0, max: 22.5, name: 'Северный'},
                     {min: 22.51, max: 67.5, name: 'Северо-восточный'},
                     {min: 67.51, max: 112.5, name: 'Восточный'},
                     {min: 112.51, max: 157.5, name: 'Юго-восточный'},
@@ -163,11 +173,11 @@
                 this.cityEn = this.weather.cityEn;
                 this.cityRu = this.weather.cityRu;
                 this.load = true;
-            }).catch((error)=>{ console.log(error); });
+            }).catch((error)=>{ this.showError(error); });
 
             axios.get('http://localhost:3000/country/').then((response)=>{
                 this.optionsCountry = response.data;
-            }).catch((error)=>{ console.log(error); });
+            }).catch((error)=>{ this.showError(error);  });
 
 
         },
@@ -189,10 +199,11 @@
                         this.cityEn = this.weather.cityEn;
                         this.cityRu = this.weather.cityRu;
                         this.load = true;
-                    }).catch((error)=>{ console.log(error); });
-                }
+                    }).catch((error)=>{ this.showError(error); });
 
-                this.$refs.modalGetCity.hide();
+                    this.$refs.modalGetCity.hide();
+
+                }else{ this.showError("город не выбран !");  }
 
             },
             setCelsius(){
@@ -210,28 +221,33 @@
                 axios.get('http://localhost:3000/city/',{params:{country:oblect.country}}).then((response)=>{
                     this.optionsCity = response.data;
                     this.citySelect = this.optionsCity[0];
-                }).catch((error)=>{ console.log(error); });
+                }).catch((error)=>{ this.showError(error); });
 
             },
             getLocation() {
 
                 if (navigator.geolocation) {
+                    this.load = false;
                     navigator.geolocation.getCurrentPosition((position)=>{
-
                         this.lat = position.coords.latitude;
                         this.lon = position.coords.longitude;
-                        this.load = false;
                         axios.get('http://localhost:3000/weather/',{params:{lat:this.lat,lon:this.lon}}).then((response)=>{
                             this.weather = response.data;
                             this.degree = Math.round(this.weather.temp-273.15);
                             this.cityEn = this.weather.cityEn;
                             this.cityRu = this.weather.cityRu;
                             this.load = true;
-                        }).catch((error)=>{ console.log(error); });
+                        }).catch((error)=>{ this.showError(error); });
 
                     });
-                } else { console.log("Geolocation is not supported by this browser."); }
+                } else { this.showError("Geolocation is not supported by this browser."); }
 
+            },
+
+            showError(error_message){
+
+                this.error_message = error_message;
+                this.$refs.error_modal.show();
             }
 
         }
@@ -259,7 +275,7 @@
 
     .main{
         height: 400px;
-        border: red solid 1px;
+        /*border: red solid 1px;*/
 
     }
 
@@ -311,7 +327,8 @@
         color:#a3d4ff;
     }
 
-    h5{ color:#fff; }
+    .col-lg-3 > h5 { color:#fff; }
+
 
 
 </style>

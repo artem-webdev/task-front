@@ -1,29 +1,12 @@
-# task
+### install 
 
-## Project setup
-```
-yarn install
-```
+    1 cd your project 
+    2 yarn install
 
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
+### run dev 
+    yarn run dev 
 
-### Compiles and minifies for production
-```
-yarn run build
-```
-
-### Run your tests
-```
-yarn run test
-```
-
-### Lints and fixes files
-```
-yarn run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### run build project 
+    yarn run build
+    
+    
